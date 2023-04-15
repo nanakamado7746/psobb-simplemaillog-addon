@@ -1,8 +1,12 @@
+local addonName = "SimpleMaillog"
 local core_mainmenu = require("core_mainmenu")
 local cfg = require("Chatlog.configuration")
 local optionsLoaded, options = pcall(require, "Chatlog.options")
+local logName = "addons/"..addonName.."/log/simple_mail.txt"
+local dateLogName = "addons/"..addonName.."/log/simple_mail"..os.date('%Y%m%d')..".txt"
+local debugLogName = "addons/"..addonName.."/debug.txt"
 
-local optionsFileName = "addons/Chatlog/options.lua"
+local optionsFileName = "addons/"..addonName.."/options.lua"
 local firstPresent = true
 local ConfigurationWindow
 
@@ -190,58 +194,6 @@ local function SaveOptions(options)
     end
 end
 
-
-local CHAT_PTR = 0x00A9A920
-local prevmaxy = 0
--- E english
--- J japonese
--- B simple chinese
--- T traditional chinese
--- K korean
--- i think there's more but haven't run into any ingame yet
--- unknown locales will cause parsing issues
-local LOCALES = "EJTKB"
-local MSG_MATCH = "^(.-) > \t([" .. LOCALES .. "])(.+)"
-local MSG_REPLACE = "^\t[" .. LOCALES .. "]"
-local QCHAT_MATCH = "^(.-) >( )(.+)$"
-local QCHAT_REPLACE = "(> )\t[" .. LOCALES .. "]"
-local MAX_GAME_LOG = 29 -- max amount of messages the game stores
-local MAX_MSG_SIZE = 100 -- not correct but close enough, character name length seems to affect it
-local output_messages = {}
-
-local function get_chat_log()
-    local messages = {}
-    for i = 0, MAX_GAME_LOG do -- for each pointer to a message
-        local ptr = pso.read_u32(CHAT_PTR + i * 4)
-
-        if ptr and ptr ~= 0 then
-            local rawmsg = pso.read_wstr(ptr, MAX_MSG_SIZE)
-            -- was there any message?
-            if rawmsg ~= nil and #rawmsg > 0 then
-                rawmsg = string.gsub(rawmsg, MSG_REPLACE, "") -- remove some shit
-                local name, locale, msg = string.match(rawmsg, MSG_MATCH) -- try match the rights parts
-                rawmsg = string.gsub(rawmsg, "\n", " ") -- replace newlines
-                if not msg then
-                    -- failed to match regular message format,
-                    -- so it's probably a quickchat message
-                    rawmsg = string.gsub(rawmsg, QCHAT_REPLACE, "%1") -- remove some shit
-                    name, locale, msg = string.match(rawmsg, QCHAT_MATCH) -- try match again
-                end
-                -- good enough
-                table.insert(messages, {name = name, text = msg, date = "??:??:??"})
-            end
-        end
-    end
-    return messages
-end
-
-local GC_PTR = 0x00A46B8C
-local CHARACTERLIST_PTR = 0x00AAACC0
-local CHARACTERNAME_OFFSET = 36
-local GC_OFFSET = 4
-local CHARACTER_OFFSET = 68
-local MAX_PLAYERS = 12
-
 local function read_pso_str(addr, len)
     local buf = {}
     pso.read_mem(buf, addr, len)
@@ -258,6 +210,85 @@ local function read_pso_str(addr, len)
 
     return str
 end
+
+local function logging(msg, path)
+    if path == nil then
+        path = debugLogName
+    end
+
+    -- Create file
+    local file = io.open(path, "a")
+
+    io.output(file)
+    io.write(msg.."\n")
+    io.close(file)
+end
+
+local function getUnixTime(receivedDateTime)
+    -- dateTime format: 04/15/2023 09:55:34
+    local date_table = os.date(
+        "*t",
+        os.time {
+            year = string.sub(receivedDateTime, 7, 11),
+            month = string.sub(receivedDateTime, 1, 2),
+            day = string.sub(receivedDateTime, 4, 5),
+            hour = string.sub(receivedDateTime, 12, 13),
+            min = string.sub(receivedDateTime, 15, 16),
+            sec = string.sub(receivedDateTime, 18, 19)
+        }
+    )
+
+    return os.time(date_table)
+end
+
+local function adjustToLocalTime(receivedDateTime)
+    local timeDifference = os.date("%H") - os.date("!%H")
+    local unixTime = getUnixTime(receivedDateTime) + (timeDifference * 3600)
+    local dateTime = os.date("%d/%m/%Y %H:%M:%S", unixTime)
+    return dateTime
+end
+
+local CHAT_PTR = 0x00AB0308
+local MAIL_LENGTH = 444
+local SENDER_OFFSET = 4
+local RECIEVED_DATETIME_OFFSET = 48
+local TEXT_OFFSET = 92
+local prevmaxy = 0
+local MAX_MSG_SIZE = 49 -- not correct but close enough, character name length seems to affect it
+local output_messages = {}
+
+local function get_chat_log()
+    local messages = {}
+    for i = 0, MAX_MSG_SIZE do -- for each pointer to a message
+        local ptr = pso.read_u32(CHAT_PTR + i * MAIL_LENGTH)
+        local mailPrefix = pso.read_wstr(CHAT_PTR + i * MAIL_LENGTH, 4)
+
+        if ptr and ptr ~= 0 then
+            local sender = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 19)
+            local receivedDateTime = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + RECIEVED_DATETIME_OFFSET, 38)
+            local text = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 250)
+
+            if mailPrefix ~= nil and #mailPrefix > 0 then
+                table.insert(
+                    messages,
+                    {
+                        name = sender,
+                        text = string.gsub(text, "%z", ""), -- Delete empty characters
+                        date = adjustToLocalTime(receivedDateTime) -- Calculate Time Difference
+                    }
+                )
+            end
+        end
+    end
+    return messages
+end
+
+local GC_PTR = 0x00A46B8C
+local CHARACTERLIST_PTR = 0x00AAACC0
+local CHARACTERNAME_OFFSET = 36
+local GC_OFFSET = 4
+local CHARACTER_OFFSET = 68
+local MAX_PLAYERS = 12
 
 local function get_gc()
     return pso.read_u32(GC_PTR)
@@ -335,8 +366,13 @@ local function DoChat()
                     if #output_messages > MAX_LOG_SIZE then
                         table.remove(output_messages, 1)
                     end
-                end
 
+                    local text = "["..updated_messages[i].date.."] "..
+                                updated_messages[i].name..
+                                " | "..updated_messages[i].text
+                    logging(text, logName)
+                    logging(text, dateLogName)
+                end
             end
         end
         
@@ -416,7 +452,7 @@ local function present()
         if options.clTransparentWindow == true then
             imgui.PushStyleColor("WindowBg", 0.0, 0.0, 0.0, 0.0)
         end
-        if imgui.Begin("Chatlog", nil, { options.clNoTitleBar, options.clNoResize, options.clNoMove }) then
+        if imgui.Begin(addonName, nil, { options.clNoTitleBar, options.clNoResize, options.clNoMove }) then
             imgui.SetWindowFontScale(options.fontScale)
             DoChat()
         end
@@ -437,11 +473,11 @@ local function init()
         ConfigurationWindow.open = not ConfigurationWindow.open
     end
 
-    core_mainmenu.add_button("Chatlog", mainMenuButtonHandler)
+    core_mainmenu.add_button(addonName, mainMenuButtonHandler)
 
     return
     {
-        name = "Chatlog",
+        name = addonName,
         version = "0.1.0",
         author = "esc",
         present = present
