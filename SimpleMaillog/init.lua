@@ -264,17 +264,17 @@ local function get_chat_log()
         local ptr = pso.read_u32(CHAT_PTR + i * MAIL_LENGTH)
 
         if ptr and ptr ~= 0 then
-            local name = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 19)
             local receivedAt = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + RECIEVED_AT_OFFSET, 38)
+            local name = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 19)
             local text = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 250)
 
             table.insert(
                 messages,
                 {
+                    date = addTimeDifference(receivedAt), -- Calculate time difference
                     gcno = ptr,
                     name = name,
-                    text = string.gsub(text, "%z", ""), -- Delete empty characters
-                    date = addTimeDifference(receivedAt) -- Calculate time difference
+                    text = string.gsub(text, "%z", "") -- Delete empty characters
                 }
             )
         end
@@ -362,7 +362,7 @@ local function DoChat()
                     table.insert(output_messages, msg)
 
                     -- write log file
-                    -- [d:m:y h:m:s] (gcno)name | text
+                    -- m:d:y h:m: \t gcno \t name \t text
                     logging(
                         updated_messages[i].date.."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
                         LOG_NAME
@@ -484,10 +484,10 @@ local function readSimpleMaillog()
         table.insert(
             output_messages,
             {
+                date = msg[1],
                 gcno = msg[2],
                 name = msg[3],
-                text = msg[4],
-                date = msg[1]
+                text = msg[4]
             }
         )
         return
