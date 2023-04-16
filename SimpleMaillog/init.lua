@@ -2,13 +2,16 @@ local addonName = "SimpleMaillog"
 local core_mainmenu = require("core_mainmenu")
 local cfg = require("Chatlog.configuration")
 local optionsLoaded, options = pcall(require, "Chatlog.options")
-local logName = "addons/"..addonName.."/log/simple_mail.txt"
-local dateLogName = "addons/"..addonName.."/log/simple_mail"..os.date('%Y%m%d')..".txt"
-local debugLogName = "addons/"..addonName.."/debug.txt"
 
 local optionsFileName = "addons/"..addonName.."/options.lua"
 local firstPresent = true
 local ConfigurationWindow
+
+-- Application constant
+local LOG_NAME = "addons/"..addonName.."/log/simple_mail.txt"
+local DATE_LOG_NAME = "addons/"..addonName.."/log/simple_mail"..os.date('%Y%m%d')..".txt"
+local DEBUG_LOG_NAME = "addons/"..addonName.."/debug.txt"
+local TIME_DIFFERENCE_HOURS = os.date("%H") - os.date("!%H")
 
 -- Helpers in solylib
 local function _getMenuState()
@@ -213,7 +216,7 @@ end
 
 local function logging(msg, path)
     if path == nil then
-        path = debugLogName
+        path = DEBUG_LOG_NAME
     end
 
     -- Create file
@@ -225,8 +228,8 @@ local function logging(msg, path)
 end
 
 local function getUnixTime(receivedDateTime)
-    -- dateTime format: 04/15/2023 09:55:34
-    local date_table = os.date(
+    -- receivedDateTime format: 04/15/2023 09:55:34
+    local unixTime = os.date(
         "*t",
         os.time {
             year = string.sub(receivedDateTime, 7, 11),
@@ -238,12 +241,11 @@ local function getUnixTime(receivedDateTime)
         }
     )
 
-    return os.time(date_table)
+    return os.time(unixTime)
 end
 
-local function adjustToLocalTime(receivedDateTime)
-    local timeDifference = os.date("%H") - os.date("!%H")
-    local unixTime = getUnixTime(receivedDateTime) + (timeDifference * 3600)
+local function addTimeDifference(receivedDateTime)
+    local unixTime = getUnixTime(receivedDateTime) + (TIME_DIFFERENCE_HOURS * 3600)
     local dateTime = os.date("%d/%m/%Y %H:%M:%S", unixTime)
     return dateTime
 end
@@ -274,7 +276,7 @@ local function get_chat_log()
                     {
                         name = sender,
                         text = string.gsub(text, "%z", ""), -- Delete empty characters
-                        date = adjustToLocalTime(receivedDateTime) -- Calculate Time Difference
+                        date = addTimeDifference(receivedDateTime) -- Calculate time difference
                     }
                 )
             end
@@ -370,8 +372,8 @@ local function DoChat()
                     local text = "["..updated_messages[i].date.."] "..
                                 updated_messages[i].name..
                                 " | "..updated_messages[i].text
-                    logging(text, logName)
-                    logging(text, dateLogName)
+                    logging(text, LOG_NAME)
+                    logging(text, DATE_LOG_NAME)
                 end
             end
         end
