@@ -1,7 +1,7 @@
 local function ConfigurationWindow(configuration)
     local this = 
     {
-        title = "Chatlog - Configuration",
+        title = "SimpleMaillog - Configuration",
         fontScale = 1.0,
         open = false,
         changed = false,
@@ -32,7 +32,7 @@ local function ConfigurationWindow(configuration)
             imgui.TreePop()
         end
 
-        if imgui.TreeNodeEx("Chatlog", "DefaultOpen") then
+        if imgui.TreeNodeEx("SimpleMaillog", "DefaultOpen") then
             if imgui.Checkbox("Hide when menus are open", _configuration.clHideWhenMenu) then
                 _configuration.clHideWhenMenu = not _configuration.clHideWhenMenu
                 this.changed = true

@@ -1,16 +1,16 @@
-local addonName = "SimpleMaillog"
+local ADDON_NAME = "SimpleMaillog"
 local core_mainmenu = require("core_mainmenu")
 local cfg = require("Chatlog.configuration")
 local optionsLoaded, options = pcall(require, "Chatlog.options")
 
-local optionsFileName = "addons/"..addonName.."/options.lua"
+local optionsFileName = "addons/"..ADDON_NAME.."/options.lua"
 local firstPresent = true
 local ConfigurationWindow
 
 -- Application constant
-local LOG_NAME = "addons/"..addonName.."/log/simple_mail.log"
-local DATE_LOG_NAME = "addons/"..addonName.."/log/simple_mail"..os.date('%Y%m%d')..".log"
-local DEBUG_LOG_NAME = "addons/"..addonName.."/debug.log"
+local LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail.log"
+local DATE_LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail"..os.date('%Y%m%d')..".log"
+local DEBUG_LOG_NAME = "addons/"..ADDON_NAME.."/debug.log"
 local TIME_DIFFERENCE_HOURS = os.date("%H") - os.date("!%H")
 
 -- Helpers in solylib
@@ -458,7 +458,7 @@ local function present()
         if options.clTransparentWindow == true then
             imgui.PushStyleColor("WindowBg", 0.0, 0.0, 0.0, 0.0)
         end
-        if imgui.Begin(addonName, nil, { options.clNoTitleBar, options.clNoResize, options.clNoMove }) then
+        if imgui.Begin(ADDON_NAME, nil, { options.clNoTitleBar, options.clNoResize, options.clNoMove }) then
             imgui.SetWindowFontScale(options.fontScale)
             DoChat()
         end
@@ -479,11 +479,11 @@ local function init()
         ConfigurationWindow.open = not ConfigurationWindow.open
     end
 
-    core_mainmenu.add_button(addonName, mainMenuButtonHandler)
+    core_mainmenu.add_button(ADDON_NAME, mainMenuButtonHandler)
 
     return
     {
-        name = addonName,
+        name = ADDON_NAME,
         version = "0.1.0",
         author = "esc",
         present = present
