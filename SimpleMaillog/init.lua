@@ -246,7 +246,7 @@ end
 
 local function addTimeDifference(receivedAt)
     local unixTime = getUnixTime(receivedAt) + (TIME_DIFFERENCE_HOURS * 3600)
-    return os.date("%d/%m/%Y %H:%M:%S", unixTime)
+    return os.date("%m/%d/%Y %H:%M:%S", unixTime)
 end
 
 local CHAT_PTR = 0x00AB0300
