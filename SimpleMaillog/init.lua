@@ -362,18 +362,23 @@ local function DoChat()
                 -- add all new messages after that index
                 for i = idx, #updated_messages do
                     local msg = updated_messages[i]
-                    msg.date = os.date("%H:%M:%S", os.time())
                     table.insert(output_messages, msg)
+
+                    -- write log file
+                    logging(
+                        "["..updated_messages[i].date.."] "..updated_messages[i].name.." | "..updated_messages[i].text,
+                        LOG_NAME
+                    )
+                    -- write date log file. received_at is only h:m:s
+                    logging(
+                        "[".. string.sub(updated_messages[i].date, 12, 19).."] "..updated_messages[i].name.." | "..updated_messages[i].text,
+                        DATE_LOG_NAME
+                    )
+
                     -- remove from start if log is too long
                     if #output_messages > MAX_LOG_SIZE then
                         table.remove(output_messages, 1)
                     end
-
-                    local text = "["..updated_messages[i].date.."] "..
-                                updated_messages[i].name..
-                                " | "..updated_messages[i].text
-                    logging(text, LOG_NAME)
-                    logging(text, DATE_LOG_NAME)
                 end
             end
         end
