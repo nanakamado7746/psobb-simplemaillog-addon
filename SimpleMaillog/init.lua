@@ -227,33 +227,32 @@ local function logging(msg, path)
     io.close(file)
 end
 
-local function getUnixTime(receivedDateTime)
-    -- receivedDateTime format: 04/15/2023 09:55:34
+local function getUnixTime(receivedAt)
+    -- receivedAt format: 04/15/2023 09:55:34
     local unixTime = os.date(
         "*t",
         os.time {
-            year = string.sub(receivedDateTime, 7, 11),
-            month = string.sub(receivedDateTime, 1, 2),
-            day = string.sub(receivedDateTime, 4, 5),
-            hour = string.sub(receivedDateTime, 12, 13),
-            min = string.sub(receivedDateTime, 15, 16),
-            sec = string.sub(receivedDateTime, 18, 19)
+            year = string.sub(receivedAt, 7, 11),
+            month = string.sub(receivedAt, 1, 2),
+            day = string.sub(receivedAt, 4, 5),
+            hour = string.sub(receivedAt, 12, 13),
+            min = string.sub(receivedAt, 15, 16),
+            sec = string.sub(receivedAt, 18, 19)
         }
     )
 
     return os.time(unixTime)
 end
 
-local function addTimeDifference(receivedDateTime)
-    local unixTime = getUnixTime(receivedDateTime) + (TIME_DIFFERENCE_HOURS * 3600)
-    local dateTime = os.date("%d/%m/%Y %H:%M:%S", unixTime)
-    return dateTime
+local function addTimeDifference(receivedAt)
+    local unixTime = getUnixTime(receivedAt) + (TIME_DIFFERENCE_HOURS * 3600)
+    return os.date("%d/%m/%Y %H:%M:%S", unixTime)
 end
 
 local CHAT_PTR = 0x00AB0308
 local MAIL_LENGTH = 444
 local SENDER_OFFSET = 4
-local RECIEVED_DATETIME_OFFSET = 48
+local RECIEVED_AT_OFFSET = 48
 local TEXT_OFFSET = 92
 local prevmaxy = 0
 local MAX_MSG_SIZE = 49 -- not correct but close enough, character name length seems to affect it
@@ -267,7 +266,7 @@ local function get_chat_log()
 
         if ptr and ptr ~= 0 then
             local sender = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 19)
-            local receivedDateTime = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + RECIEVED_DATETIME_OFFSET, 38)
+            local receivedAt = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + RECIEVED_AT_OFFSET, 38)
             local text = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 250)
 
             if mailPrefix ~= nil and #mailPrefix > 0 then
@@ -276,7 +275,7 @@ local function get_chat_log()
                     {
                         name = sender,
                         text = string.gsub(text, "%z", ""), -- Delete empty characters
-                        date = addTimeDifference(receivedDateTime) -- Calculate time difference
+                        date = addTimeDifference(receivedAt) -- Calculate time difference
                     }
                 )
             end
