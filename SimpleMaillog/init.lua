@@ -8,9 +8,9 @@ local firstPresent = true
 local ConfigurationWindow
 
 -- Application constant
-local LOG_NAME = "addons/"..addonName.."/log/simple_mail.txt"
-local DATE_LOG_NAME = "addons/"..addonName.."/log/simple_mail"..os.date('%Y%m%d')..".txt"
-local DEBUG_LOG_NAME = "addons/"..addonName.."/debug.txt"
+local LOG_NAME = "addons/"..addonName.."/log/simple_mail.log"
+local DATE_LOG_NAME = "addons/"..addonName.."/log/simple_mail"..os.date('%Y%m%d')..".log"
+local DEBUG_LOG_NAME = "addons/"..addonName.."/debug.log"
 local TIME_DIFFERENCE_HOURS = os.date("%H") - os.date("!%H")
 
 -- Helpers in solylib
