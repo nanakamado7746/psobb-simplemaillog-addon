@@ -1,3 +1,5 @@
+-- This addon was created based on the Chatlog addon.
+
 local ADDON_NAME = "SimpleMaillog"
 local core_mainmenu = require("core_mainmenu")
 local cfg = require("Chatlog.configuration")
