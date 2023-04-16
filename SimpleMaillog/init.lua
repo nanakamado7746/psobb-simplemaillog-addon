@@ -249,12 +249,11 @@ local function addTimeDifference(receivedAt)
     return os.date("%d/%m/%Y %H:%M:%S", unixTime)
 end
 
-local CHAT_PTR = 0x00AB0308
+local CHAT_PTR = 0x00AB0300
 local MAIL_LENGTH = 444
-local GUILD_CARD_NUMBER_OFFSET = 4
-local SENDER_OFFSET = 4
-local RECIEVED_AT_OFFSET = 48
-local TEXT_OFFSET = 92
+local SENDER_OFFSET = 12
+local RECIEVED_AT_OFFSET = 56
+local TEXT_OFFSET = 100
 local prevmaxy = 0
 local MAX_MSG_SIZE = 49 -- not correct but close enough, character name length seems to affect it
 local output_messages = {}
@@ -263,25 +262,21 @@ local function get_chat_log()
     local messages = {}
     for i = 0, MAX_MSG_SIZE do -- for each pointer to a message
         local ptr = pso.read_u32(CHAT_PTR + i * MAIL_LENGTH)
-        local mailPrefix = pso.read_wstr(CHAT_PTR + i * MAIL_LENGTH, 4)
 
         if ptr and ptr ~= 0 then
-            local gcno = pso.read_u32(CHAT_PTR + GUILD_CARD_NUMBER_OFFSET)
             local name = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 19)
             local receivedAt = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + RECIEVED_AT_OFFSET, 38)
             local text = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 250)
 
-            if mailPrefix ~= nil and #mailPrefix > 0 then
-                table.insert(
-                    messages,
-                    {
-                        gcno = gcno,
-                        name = name,
-                        text = string.gsub(text, "%z", ""), -- Delete empty characters
-                        date = addTimeDifference(receivedAt) -- Calculate time difference
-                    }
-                )
-            end
+            table.insert(
+                messages,
+                {
+                    gcno = ptr,
+                    name = name,
+                    text = string.gsub(text, "%z", ""), -- Delete empty characters
+                    date = addTimeDifference(receivedAt) -- Calculate time difference
+                }
+            )
         end
     end
     return messages
