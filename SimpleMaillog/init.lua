@@ -251,6 +251,7 @@ end
 
 local CHAT_PTR = 0x00AB0308
 local MAIL_LENGTH = 444
+local GUILD_CARD_NUMBER_OFFSET = 4
 local SENDER_OFFSET = 4
 local RECIEVED_AT_OFFSET = 48
 local TEXT_OFFSET = 92
@@ -265,7 +266,8 @@ local function get_chat_log()
         local mailPrefix = pso.read_wstr(CHAT_PTR + i * MAIL_LENGTH, 4)
 
         if ptr and ptr ~= 0 then
-            local sender = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 19)
+            local gcno = pso.read_u32(CHAT_PTR + GUILD_CARD_NUMBER_OFFSET)
+            local name = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 19)
             local receivedAt = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + RECIEVED_AT_OFFSET, 38)
             local text = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 250)
 
@@ -273,7 +275,8 @@ local function get_chat_log()
                 table.insert(
                     messages,
                     {
-                        name = sender,
+                        gcno = gcno,
+                        name = name,
                         text = string.gsub(text, "%z", ""), -- Delete empty characters
                         date = addTimeDifference(receivedAt) -- Calculate time difference
                     }
@@ -364,13 +367,15 @@ local function DoChat()
                     table.insert(output_messages, msg)
 
                     -- write log file
+                    -- [d:m:y h:m:s] (gcno)name | text
                     logging(
-                        "["..updated_messages[i].date.."] "..updated_messages[i].name.." | "..updated_messages[i].text,
+                        "["..updated_messages[i].date.."] ".. "("..updated_messages[i].gcno..")" ..updated_messages[i].name.. " | " ..updated_messages[i].text,
                         LOG_NAME
                     )
                     -- write date log file. received_at is only h:m:s
+                    -- h:m:s \t gcno \t name \t text
                     logging(
-                        "[".. string.sub(updated_messages[i].date, 12, 19).."] "..updated_messages[i].name.." | "..updated_messages[i].text,
+                        string.sub(updated_messages[i].date, 12, 19).."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
                         DATE_LOG_NAME
                     )
 
@@ -388,7 +393,7 @@ local function DoChat()
     -- draw messages
     for i,msg in ipairs(output_messages) do
         local formatted = msg.formatted or
-                          ( "[".. msg.date .. "] " .. string.format("%-11s", msg.name) .. -- rpad name
+                          ( "[".. msg.date .. "] " ..  " (" .. msg.gcno .. ")"  .. string.format("%-11s", msg.name) .. -- rpad name
                           "| " .. string.gsub(msg.text, "%%", "%%%%")) -- escape '%'
         msg.formatted = formatted -- cache
         local lower = string.lower(msg.text) -- for case insensitive matching
