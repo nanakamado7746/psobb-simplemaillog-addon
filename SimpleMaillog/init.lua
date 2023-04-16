@@ -255,12 +255,12 @@ local SENDER_OFFSET = 12
 local RECIEVED_AT_OFFSET = 56
 local TEXT_OFFSET = 100
 local prevmaxy = 0
-local MAX_MSG_SIZE = 49 -- not correct but close enough, character name length seems to affect it
+local MAX_MSG_SIZE = 50
 local output_messages = {}
 
 local function get_chat_log()
     local messages = {}
-    for i = 0, MAX_MSG_SIZE do -- for each pointer to a message
+    for i = 0, (MAX_MSG_SIZE - 1) do -- for each pointer to a message
         local ptr = pso.read_u32(CHAT_PTR + i * MAIL_LENGTH)
 
         if ptr and ptr ~= 0 then
