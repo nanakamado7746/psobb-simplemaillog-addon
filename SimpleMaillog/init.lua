@@ -364,7 +364,7 @@ local function DoChat()
                     -- write log file
                     -- [d:m:y h:m:s] (gcno)name | text
                     logging(
-                        "["..updated_messages[i].date.."] ".. "("..updated_messages[i].gcno..")" ..updated_messages[i].name.. " | " ..updated_messages[i].text,
+                        updated_messages[i].date.."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
                         LOG_NAME
                     )
                     -- write date log file. received_at is only h:m:s
@@ -472,6 +472,30 @@ local function present()
     end
 end
 
+local function readSimpleMaillog()
+    local file = io.open(LOG_NAME, "r")
+
+    for line in io.lines(LOG_NAME) do
+        local msg = {}
+        for substr in string.gmatch(line, "[^\t]+") do
+            table.insert(msg, substr)
+        end
+
+        table.insert(
+            output_messages,
+            {
+                gcno = msg[2],
+                name = msg[3],
+                text = msg[4],
+                date = msg[1]
+            }
+        )
+        return
+    end
+
+    file:close()
+end
+
 local function init()
     ConfigurationWindow = cfg.ConfigurationWindow(options)
 
@@ -480,6 +504,9 @@ local function init()
     end
 
     core_mainmenu.add_button(ADDON_NAME, mainMenuButtonHandler)
+
+    -- Read mail logs at init.
+    readSimpleMaillog()
 
     return
     {
