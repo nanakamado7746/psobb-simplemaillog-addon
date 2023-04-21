@@ -284,33 +284,9 @@ local function get_chat_log()
     return messages
 end
 
-local GC_PTR = 0x00A46B8C
-local CHARACTERLIST_PTR = 0x00AAACC0
-local CHARACTERNAME_OFFSET = 36
-local GC_OFFSET = 4
-local CHARACTER_OFFSET = 68
-local MAX_PLAYERS = 12
-
-local function get_gc()
-    return pso.read_u32(GC_PTR)
-end
-
-local function get_charactername(gc)
-    for i = 0, MAX_PLAYERS do
-        local gc0 = pso.read_u32(CHARACTERLIST_PTR + CHARACTER_OFFSET * i + GC_OFFSET)
-        if(gc == gc0) then
-            return read_pso_str(CHARACTERLIST_PTR + CHARACTER_OFFSET * i + CHARACTERNAME_OFFSET, 20)
-        end
-    end
-    return nil
-end
-
 local UPDATE_INTERVAL = 30
 local counter = UPDATE_INTERVAL - 1
 local MAX_LOG_SIZE = 1000
-local HILIGHT_COLOR = {0.5, 1, 0, 1}
-
-local own_name = ""
 
 local function DoChat()
     counter = counter + 1
@@ -324,66 +300,59 @@ local function DoChat()
             scrolldown = true
         end
 
-        -- Check if we have a character name, can be null if we are not online yet
-        character_name = get_charactername(get_gc())
-        if character_name ~= nil then
-            -- apparently there's null characters in the name?
-            -- so the gsub removes them
-            own_name = string.gsub(string.lower(character_name), "%z", "")
-            local updated_messages = get_chat_log()
+        local updated_messages = get_chat_log()
 
-            if #output_messages == 0 and #updated_messages > 0 then
-                -- old list is empty but there are new messages
-                output_messages = updated_messages
-            elseif #output_messages == 0 or #updated_messages == 0 then
-                -- do nothing
-            else
-                -- diff old and new messages
+        if #output_messages == 0 and #updated_messages > 0 then
+            -- old list is empty but there are new messages
+            output_messages = updated_messages
+        elseif #output_messages == 0 or #updated_messages == 0 then
+            -- do nothing
+        else
+            -- diff old and new messages
 
-                local idx = 1
-                -- find index of the latest matching message
-                -- wrap loops in func so we can break both with return
-                ;(function()
-                    -- realistically we probably dont need the outer loop
-                    -- since there's no way more than 30 messages could be sent
-                    -- in between updates
-                    for i = #output_messages, 1, -1 do
-                        for j = #updated_messages, 1, -1 do
-                            if output_messages[i].text == updated_messages[j].text and
-                            output_messages[i].name == updated_messages[j].name then
-                                idx = j + 1
-                                return
-                            end
+            local idx = 1
+            -- find index of the latest matching message
+            -- wrap loops in func so we can break both with return
+            ;(function()
+                -- realistically we probably dont need the outer loop
+                -- since there's no way more than 30 messages could be sent
+                -- in between updates
+                for i = #output_messages, 1, -1 do
+                    for j = #updated_messages, 1, -1 do
+                        if output_messages[i].text == updated_messages[j].text and
+                        output_messages[i].name == updated_messages[j].name then
+                            idx = j + 1
+                            return
                         end
                     end
-                end)()
+                end
+            end)()
 
-                -- add all new messages after that index
-                for i = idx, #updated_messages do
-                    local msg = updated_messages[i]
-                    table.insert(output_messages, msg)
+            -- add all new messages after that index
+            for i = idx, #updated_messages do
+                local msg = updated_messages[i]
+                table.insert(output_messages, msg)
 
-                    -- write log file
-                    -- m:d:y h:m: \t gcno \t name \t text
-                    logging(
-                        updated_messages[i].date.."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
-                        LOG_NAME
-                    )
-                    -- write date log file. received_at is only h:m:s
-                    -- h:m:s \t gcno \t name \t text
-                    logging(
-                        string.sub(updated_messages[i].date, 12, 19).."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
-                        DATE_LOG_NAME
-                    )
+                -- write log file
+                -- m:d:y h:m: \t gcno \t name \t text
+                logging(
+                    updated_messages[i].date.."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
+                    LOG_NAME
+                )
+                -- write date log file. received_at is only h:m:s
+                -- h:m:s \t gcno \t name \t text
+                logging(
+                    string.sub(updated_messages[i].date, 12, 19).."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
+                    DATE_LOG_NAME
+                )
 
-                    -- remove from start if log is too long
-                    if #output_messages > MAX_LOG_SIZE then
-                        table.remove(output_messages, 1)
-                    end
+                -- remove from start if log is too long
+                if #output_messages > MAX_LOG_SIZE then
+                    table.remove(output_messages, 1)
                 end
             end
         end
-        
+
         counter = 0
     end
 
@@ -393,31 +362,8 @@ local function DoChat()
                           ( "[".. msg.date .. "] " ..  " (" .. msg.gcno .. ")"  .. string.format("%-11s", msg.name) .. -- rpad name
                           "| " .. string.gsub(msg.text, "%%", "%%%%")) -- escape '%'
         msg.formatted = formatted -- cache
-        local lower = string.lower(msg.text) -- for case insensitive matching
 
-        -- full word match own name
-        if msg.hilight or (#own_name > 0 and string.match(lower, own_name) and
-            (
-                string.match(lower, "^" .. own_name .. "[%p%s]") or
-                string.match(lower, "[%p%s]" .. own_name .. "[%p%s]") or
-                string.match(lower, "[%p%s]" .. own_name .. "$") or
-                string.match(lower, "^" .. own_name .. "$")
-            )) then
-                -- hilight message
-                imgui.PushTextWrapPos(0)
-                imgui.TextColored(
-                    HILIGHT_COLOR[1],
-                    HILIGHT_COLOR[2],
-                    HILIGHT_COLOR[3],
-                    HILIGHT_COLOR[4],
-                    formatted
-                )
-                imgui.PopTextWrapPos()
-                msg.hilight = true -- cache
-        else
-            -- no hilight
-            imgui.TextWrapped(formatted)
-        end
+        imgui.TextWrapped(formatted)
 
         if scrolldown then
             imgui.SetScrollY(imgui.GetScrollMaxY())
@@ -483,7 +429,7 @@ local function readSimpleMaillog()
             for substr in string.gmatch(line, "[^\t]+") do
                 table.insert(msg, substr)
             end
-    
+
             table.insert(
                 output_messages,
                 {
