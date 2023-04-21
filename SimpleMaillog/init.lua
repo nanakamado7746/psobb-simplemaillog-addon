@@ -1,5 +1,3 @@
--- This addon was created based on the Chatlog addon.
-
 local ADDON_NAME = "SimpleMaillog"
 local core_mainmenu = require("core_mainmenu")
 local cfg = require("Chatlog.configuration")
@@ -13,7 +11,6 @@ local ConfigurationWindow
 local LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail.txt"
 local DATE_LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail"..os.date('%Y%m%d')..".txt"
 local DEBUG_LOG_NAME = "addons/"..ADDON_NAME.."/debug.txt"
-local TIME_DIFFERENCE_HOURS = os.date("%H") - os.date("!%H")
 
 -- Helpers in solylib
 local function _getMenuState()
@@ -246,9 +243,10 @@ local function getUnixTime(receivedAt)
     return os.time(unixTime)
 end
 
+local TIME_DIFFERENCE_HOURS = os.date("%H") - os.date("!%H")
 local function addTimeDifference(receivedAt)
-    local unixTime = getUnixTime(receivedAt) + (TIME_DIFFERENCE_HOURS * 3600)
-    return os.date("%m/%d/%Y %H:%M:%S", unixTime)
+    local adjusted_time = getUnixTime(receivedAt) + (TIME_DIFFERENCE_HOURS * 3600)
+    return os.date("%m/%d/%Y %H:%M:%S", adjusted_time )
 end
 
 local CHAT_PTR = 0x00AB0300
