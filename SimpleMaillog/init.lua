@@ -10,9 +10,9 @@ local firstPresent = true
 local ConfigurationWindow
 
 -- Application constant
-local LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail.log"
-local DATE_LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail"..os.date('%Y%m%d')..".log"
-local DEBUG_LOG_NAME = "addons/"..ADDON_NAME.."/debug.log"
+local LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail.txt"
+local DATE_LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail"..os.date('%Y%m%d')..".txt"
+local DEBUG_LOG_NAME = "addons/"..ADDON_NAME.."/debug.txt"
 local TIME_DIFFERENCE_HOURS = os.date("%H") - os.date("!%H")
 
 -- Helpers in solylib
@@ -477,25 +477,25 @@ end
 local function readSimpleMaillog()
     local file = io.open(LOG_NAME, "r")
 
-    for line in io.lines(LOG_NAME) do
-        local msg = {}
-        for substr in string.gmatch(line, "[^\t]+") do
-            table.insert(msg, substr)
+    if file ~= nil then
+        for line in io.lines(LOG_NAME) do
+            local msg = {}
+            for substr in string.gmatch(line, "[^\t]+") do
+                table.insert(msg, substr)
+            end
+    
+            table.insert(
+                output_messages,
+                {
+                    date = msg[1],
+                    gcno = msg[2],
+                    name = msg[3],
+                    text = msg[4]
+                }
+            )
         end
-
-        table.insert(
-            output_messages,
-            {
-                date = msg[1],
-                gcno = msg[2],
-                name = msg[3],
-                text = msg[4]
-            }
-        )
-        return
+        file:close()
     end
-
-    file:close()
 end
 
 local function init()
