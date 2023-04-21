@@ -433,10 +433,10 @@ local function readSimpleMaillog()
             table.insert(
                 output_messages,
                 {
-                    date = msg[1],
-                    gcno = msg[2],
-                    name = msg[3],
-                    text = msg[4]
+                    date = msg[1] or "",
+                    gcno = msg[2] or "",
+                    name = msg[3] or "",
+                    text = msg[4] or ""
                 }
             )
         end
