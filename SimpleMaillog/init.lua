@@ -332,7 +332,7 @@ local function DoChat()
                 table.insert(output_messages, msg)
 
                 -- write log file
-                -- m:d:y h:m: \t gcno \t name \t text
+                -- m:d:y h:m:s \t gcno \t name \t text
                 logging(
                     updated_messages[i].date.."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
                     LOG_NAME
