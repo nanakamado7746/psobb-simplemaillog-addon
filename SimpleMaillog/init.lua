@@ -1,7 +1,7 @@
 local ADDON_NAME = "SimpleMaillog"
 local core_mainmenu = require("core_mainmenu")
-local cfg = require("Chatlog.configuration")
-local optionsLoaded, options = pcall(require, "Chatlog.options")
+local cfg = require("SimpleMaillog.configuration")
+local optionsLoaded, options = pcall(require, "SimpleMaillog.options")
 
 local optionsFileName = "addons/"..ADDON_NAME.."/options.lua"
 local firstPresent = true
