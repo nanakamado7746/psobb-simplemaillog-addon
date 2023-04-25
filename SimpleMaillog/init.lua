@@ -303,6 +303,16 @@ local function DoChat()
         if #output_messages == 0 and #updated_messages > 0 then
             -- old list is empty but there are new messages
             output_messages = updated_messages
+            logging(
+                updated_messages[#updated_messages].date.."\t" ..updated_messages[#updated_messages].gcno.."\t" ..updated_messages[#updated_messages].name.."\t" ..updated_messages[#updated_messages].text,
+                LOG_NAME
+            )
+            -- write date log file. received_at is only h:m:s
+            -- h:m:s \t gcno \t name \t text
+            logging(
+                string.sub(updated_messages[#updated_messages].date, 12, 19).."\t" ..updated_messages[#updated_messages].gcno.."\t" ..updated_messages[#updated_messages].name.."\t" ..updated_messages[#updated_messages].text,
+                DATE_LOG_NAME
+            )
         elseif #output_messages == 0 or #updated_messages == 0 then
             -- do nothing
         else
