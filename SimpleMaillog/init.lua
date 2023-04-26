@@ -282,6 +282,18 @@ local function get_chat_log()
     return messages
 end
 
+local function logFomatter(msg)
+    -- write log file
+    -- m:d:y h:m:s \t gcno \t name \t text
+    return msg.date.."\t" ..msg.gcno.."\t" ..msg.name.."\t" ..msg.text
+end
+
+local function dateLogfomatter(msg)
+    -- write log file
+    -- m:d:y h:m:s \t gcno \t name \t text
+    return string.sub(msg.date, 12, 19).."\t" ..msg.gcno.."\t" ..msg.name.."\t" ..msg.text
+end
+
 local UPDATE_INTERVAL = 30
 local counter = UPDATE_INTERVAL - 1
 local MAX_LOG_SIZE = 1000
@@ -303,16 +315,8 @@ local function DoChat()
         if #output_messages == 0 and #updated_messages > 0 then
             -- old list is empty but there are new messages
             output_messages = updated_messages
-            logging(
-                updated_messages[#updated_messages].date.."\t" ..updated_messages[#updated_messages].gcno.."\t" ..updated_messages[#updated_messages].name.."\t" ..updated_messages[#updated_messages].text,
-                LOG_NAME
-            )
-            -- write date log file. received_at is only h:m:s
-            -- h:m:s \t gcno \t name \t text
-            logging(
-                string.sub(updated_messages[#updated_messages].date, 12, 19).."\t" ..updated_messages[#updated_messages].gcno.."\t" ..updated_messages[#updated_messages].name.."\t" ..updated_messages[#updated_messages].text,
-                DATE_LOG_NAME
-            )
+            logging(logFomatter(updated_messages[#updated_messages]), LOG_NAME)
+            logging(dateLogfomatter(updated_messages[#updated_messages]), DATE_LOG_NAME)
         elseif #output_messages == 0 or #updated_messages == 0 then
             -- do nothing
         else
@@ -338,22 +342,9 @@ local function DoChat()
 
             -- add all new messages after that index
             for i = idx, #updated_messages do
-                local msg = updated_messages[i]
                 table.insert(output_messages, msg)
-
-                -- write log file
-                -- m:d:y h:m:s \t gcno \t name \t text
-                logging(
-                    updated_messages[i].date.."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
-                    LOG_NAME
-                )
-                -- write date log file. received_at is only h:m:s
-                -- h:m:s \t gcno \t name \t text
-                logging(
-                    string.sub(updated_messages[i].date, 12, 19).."\t" ..updated_messages[i].gcno.."\t" ..updated_messages[i].name.."\t" ..updated_messages[i].text,
-                    DATE_LOG_NAME
-                )
-
+                logging(logFomatter(updated_messages[i]), LOG_NAME)
+                logging(dateLogfomatter(updated_messages[i]), DATE_LOG_NAME)
                 -- remove from start if log is too long
                 if #output_messages > MAX_LOG_SIZE then
                     table.remove(output_messages, 1)
