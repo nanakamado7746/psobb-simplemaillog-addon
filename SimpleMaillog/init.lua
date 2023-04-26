@@ -315,8 +315,10 @@ local function DoChat()
         if #output_messages == 0 and #updated_messages > 0 then
             -- old list is empty but there are new messages
             output_messages = updated_messages
-            logging(logFomatter(updated_messages[#updated_messages]), LOG_NAME)
-            logging(dateLogfomatter(updated_messages[#updated_messages]), DATE_LOG_NAME)
+            for msg in pairs(updated_messages) do
+                logging(logFomatter(msg), LOG_NAME)
+                logging(dateLogfomatter(msg), DATE_LOG_NAME)
+            end
         elseif #output_messages == 0 or #updated_messages == 0 then
             -- do nothing
         else
