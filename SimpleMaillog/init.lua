@@ -265,8 +265,8 @@ local function get_chat_log()
 
         if ptr and ptr ~= 0 then
             local receivedAt = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + RECIEVED_AT_OFFSET, 38)
-            local name = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 19)
-            local text = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 250)
+            local name = pso.read_wstr(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 10)
+            local text = pso.read_wstr(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 55)
 
             table.insert(
                 messages,
@@ -274,7 +274,7 @@ local function get_chat_log()
                     date = addTimeDifference(receivedAt), -- Calculate time difference
                     gcno = ptr,
                     name = name,
-                    text = string.gsub(text, "%z", "") -- Delete empty characters
+                    text = text
                 }
             )
         end
@@ -315,9 +315,9 @@ local function DoChat()
         if #output_messages == 0 and #updated_messages > 0 then
             -- old list is empty but there are new messages
             output_messages = updated_messages
-            for msg in pairs(updated_messages) do
-                logging(logFomatter(msg), LOG_NAME)
-                logging(dateLogfomatter(msg), DATE_LOG_NAME)
+            for i,msg in ipairs(updated_messages) do
+                logging(logFomatter(updated_messages[i]), LOG_NAME)
+                logging(dateLogfomatter(updated_messages[i]), DATE_LOG_NAME)
             end
         elseif #output_messages == 0 or #updated_messages == 0 then
             -- do nothing
