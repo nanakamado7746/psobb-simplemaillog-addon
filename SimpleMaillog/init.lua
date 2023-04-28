@@ -266,8 +266,7 @@ local function get_chat_log()
         if ptr and ptr ~= 0 then
             local receivedAt = read_pso_str(CHAT_PTR + i * MAIL_LENGTH + RECIEVED_AT_OFFSET, 38)
             local name = pso.read_wstr(CHAT_PTR + i * MAIL_LENGTH + SENDER_OFFSET, 10)
-            local text = pso.read_wstr(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 55)
-
+            local text = pso.read_wstr(CHAT_PTR + i * MAIL_LENGTH + TEXT_OFFSET, 170)
             table.insert(
                 messages,
                 {
