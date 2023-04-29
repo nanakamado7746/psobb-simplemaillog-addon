@@ -333,7 +333,8 @@ local function DoChat()
                 for i = #output_messages, 1, -1 do
                     for j = #updated_messages, 1, -1 do
                         if output_messages[i].text == updated_messages[j].text and
-                        output_messages[i].name == updated_messages[j].name then
+                        output_messages[i].name == updated_messages[j].name and
+                        output_messages[i].date == updated_messages[j].date then
                             idx = j + 1
                             return
                         end
