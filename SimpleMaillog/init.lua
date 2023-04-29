@@ -227,7 +227,7 @@ local function logging(msg, path)
 end
 
 local function getUnixTime(receivedAt)
-    -- receivedAt format: 04/15/2023 09:55:34
+    -- process memory receivedAt format: 04/15/2023 09:55:34
     local unixTime = os.date(
         "*t",
         os.time {
@@ -282,14 +282,14 @@ local function get_chat_log()
 end
 
 local function logFomatter(msg)
-    -- write log file
+    -- write log file format
     -- m:d:y h:m:s \t gcno \t name \t text
     return msg.date.."\t" ..msg.gcno.."\t" ..msg.name.."\t" ..msg.text
 end
 
 local function dateLogfomatter(msg)
-    -- write log file
-    -- m:d:y h:m:s \t gcno \t name \t text
+    -- write date log file format
+    -- h:m:s \t gcno \t name \t text
     return string.sub(msg.date, 12, 19).."\t" ..msg.gcno.."\t" ..msg.name.."\t" ..msg.text
 end
 
@@ -346,8 +346,8 @@ local function DoChat()
             for i = idx, #updated_messages do
                 local msg = updated_messages[i]
                 table.insert(output_messages, msg)
-                logging(logFomatter(output_messages[i]), LOG_NAME)
-                logging(dateLogfomatter(output_messages[i]), DATE_LOG_NAME)
+                logging(logFomatter(msg), LOG_NAME)
+                logging(dateLogfomatter(msg), DATE_LOG_NAME)
                 -- remove from start if log is too long
                 if #output_messages > MAX_LOG_SIZE then
                     table.remove(output_messages, 1)
@@ -422,7 +422,7 @@ local function present()
     end
 end
 
-local function readSimpleMaillog()
+local function readLogFile()
     local file = io.open(LOG_NAME, "r")
 
     if file ~= nil then
@@ -456,7 +456,7 @@ local function init()
     core_mainmenu.add_button(ADDON_NAME, mainMenuButtonHandler)
 
     -- Read mail logs at init.
-    readSimpleMaillog()
+    readLogFile()
 
     return
     {
