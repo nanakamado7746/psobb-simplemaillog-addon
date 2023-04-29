@@ -314,9 +314,9 @@ local function DoChat()
         if #output_messages == 0 and #updated_messages > 0 then
             -- old list is empty but there are new messages
             output_messages = updated_messages
-            for i,msg in ipairs(updated_messages) do
-                logging(logFomatter(updated_messages[i]), LOG_NAME)
-                logging(dateLogfomatter(updated_messages[i]), DATE_LOG_NAME)
+            for i,msg in ipairs(output_messages) do
+                logging(logFomatter(output_messages[i]), LOG_NAME)
+                logging(dateLogfomatter(output_messages[i]), DATE_LOG_NAME)
             end
         elseif #output_messages == 0 or #updated_messages == 0 then
             -- do nothing
@@ -346,8 +346,8 @@ local function DoChat()
             for i = idx, #updated_messages do
                 local msg = updated_messages[i]
                 table.insert(output_messages, msg)
-                logging(logFomatter(updated_messages[i]), LOG_NAME)
-                logging(dateLogfomatter(updated_messages[i]), DATE_LOG_NAME)
+                logging(logFomatter(output_messages[i]), LOG_NAME)
+                logging(dateLogfomatter(output_messages[i]), DATE_LOG_NAME)
                 -- remove from start if log is too long
                 if #output_messages > MAX_LOG_SIZE then
                     table.remove(output_messages, 1)
