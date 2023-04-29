@@ -344,6 +344,7 @@ local function DoChat()
 
             -- add all new messages after that index
             for i = idx, #updated_messages do
+                local msg = updated_messages[i]
                 table.insert(output_messages, msg)
                 logging(logFomatter(updated_messages[i]), LOG_NAME)
                 logging(dateLogfomatter(updated_messages[i]), DATE_LOG_NAME)
