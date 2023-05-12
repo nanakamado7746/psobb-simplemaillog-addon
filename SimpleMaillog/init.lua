@@ -1,16 +1,15 @@
-local ADDON_NAME = "SimpleMaillog"
 local core_mainmenu = require("core_mainmenu")
 local cfg = require("SimpleMaillog.configuration")
 local optionsLoaded, options = pcall(require, "SimpleMaillog.options")
 
-local optionsFileName = "addons/"..ADDON_NAME.."/options.lua"
+local optionsFileName = "addons/SimpleMaillog/options.lua"
 local firstPresent = true
 local ConfigurationWindow
 
 -- Application constant
-local LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail.txt"
-local DATE_LOG_NAME = "addons/"..ADDON_NAME.."/log/simple_mail"..os.date('%Y%m%d')..".txt"
-local DEBUG_LOG_NAME = "addons/"..ADDON_NAME.."/debug.txt"
+local LOG_NAME = "addons/SimpleMaillog/log/simple_mail.txt"
+local DATE_LOG_NAME = "addons/SimpleMaillog/log/simple_mail"..os.date('%Y%m%d')..".txt"
+local DEBUG_LOG_NAME = "addons/SimpleMaillog/debug.txt"
 
 -- Helpers in solylib
 local function _getMenuState()
@@ -408,7 +407,7 @@ local function present()
         if options.clTransparentWindow == true then
             imgui.PushStyleColor("WindowBg", 0.0, 0.0, 0.0, 0.0)
         end
-        if imgui.Begin(ADDON_NAME, nil, { options.clNoTitleBar, options.clNoResize, options.clNoMove }) then
+        if imgui.Begin("SimpleMaillog", nil, { options.clNoTitleBar, options.clNoResize, options.clNoMove }) then
             imgui.SetWindowFontScale(options.fontScale)
             DoChat()
         end
@@ -453,14 +452,14 @@ local function init()
         ConfigurationWindow.open = not ConfigurationWindow.open
     end
 
-    core_mainmenu.add_button(ADDON_NAME, mainMenuButtonHandler)
+    core_mainmenu.add_button("SimpleMaillog", mainMenuButtonHandler)
 
     -- Read mail logs at init.
     readLogFile()
 
     return
     {
-        name = ADDON_NAME,
+        name = "SimpleMaillog",
         version = "0.1.0",
         author = "esc",
         present = present
