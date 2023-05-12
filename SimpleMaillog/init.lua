@@ -361,7 +361,7 @@ local function DoChat()
     -- draw messages
     for i,msg in ipairs(output_messages) do
         local formatted = msg.formatted or
-                          ( "[".. msg.date .. "] " ..  " (" .. msg.gcno .. ")"  .. string.format("%-11s", msg.name) .. -- rpad name
+                          ( "[".. msg.date .. "] " ..  " (" .. msg.gcno .. ")"  .. "" ..msg.name .. " " .. -- rpad name
                           "| " .. string.gsub(msg.text, "%%", "%%%%")) -- escape '%'
         msg.formatted = formatted -- cache
 
