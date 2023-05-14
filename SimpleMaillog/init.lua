@@ -7,8 +7,8 @@ local firstPresent = true
 local ConfigurationWindow
 
 -- Application constant
-local LOG_NAME = "addons/SimpleMaillog/log/simple_mail.txt"
-local DATE_LOG_NAME = "addons/SimpleMaillog/log/simple_mail"..os.date('%Y%m%d')..".txt"
+local LOG_NAME = "addons/SimpleMaillog/log/simpleMail.txt"
+local DATE_LOG_NAME = "addons/SimpleMaillog/log/simpleMail"..os.date('%Y%m%d')..".txt"
 local DEBUG_LOG_NAME = "addons/SimpleMaillog/debug.txt"
 
 -- Helpers in solylib
