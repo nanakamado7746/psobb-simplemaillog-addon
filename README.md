@@ -1,4 +1,4 @@
 # psobb-simplemaillog-addon
-This addon is saving received simple mails and viewing it to ui.
+This addon is saving received mail and viewing it to UI.
 
-Sent emails are not supported.
+Sent mail is not supported.
