@@ -461,7 +461,7 @@ local function init()
     {
         name = "SimpleMaillog",
         version = "0.1.0",
-        author = "esc",
+        author = "sakura",
         present = present
     }
 end
